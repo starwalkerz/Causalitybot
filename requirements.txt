@@ -1,0 +1,6 @@
+# Core dependencies for Causal Set Momentum
+# Python >= 3.10 required
+
+numpy>=1.24,<3.0
+pandas>=2.0,<3.0
+scipy>=1.11,<2.0

@@ -1,0 +1,9 @@
+# Live trading dependencies (optional)
+# Install with: pip install -r requirements-live.txt
+
+ccxt>=4.0
+ccxt[pro]>=4.0
+
+# For resilient WebSocket reconnection
+websockets>=12.0
+aiohttp>=3.9
