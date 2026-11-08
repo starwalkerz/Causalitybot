@@ -51,6 +51,23 @@ The framework is a single Python module (`causal_set_bot.py`) with no external
 machine-learning dependencies — only NumPy, pandas, and optionally ccxt for live
 data.
 
+# Degen view:
+
+# Causal Set Momentum (CSM) — The Order-Book Sniper
+
+A raw, non-chronological trading primitive built to exploit structural inefficiencies inside Limit Order Books (LOB) at the microsecond tick level. Traditional technical indicators (RSI, MACD, Moving Averages) are slow, lagging filters that impose an artificial chronological calendar clock on a system that has no fundamental clock. This bot burns wall-clock time entirely and replaces it with discrete event geometry: **Order + Number = Geometry**.
+
+## 🧠 Core Mechanics
+- **The Causal Poset (C, ≺):** Ingests raw atomic LOB snapshots (limit placements, cancellations, executions) via `ccxt[pro]` into a rolling-memory DAG based strictly on temporal precedence, state overlap, and causal susceptibility.
+- **Horizon Tracking:** Scans local graph depth for extreme σ-threshold anomalies. It identifies a Causal Horizon (H)—the unmistakable geometric footprint of an institutional whale executing a stealth iceberg block that truncates the market's available liquidity history.
+- **Bottleneck Sweeping:** Runs an analytical scan to pinpoint Causal Bottlenecks ($p^*$)—immediate price level vacuums/gaps left behind by exchange matching engines during rapid liquidation cascades, acting as an absolute price magnet.
+
+## ⚠️ Brutal Realities & Constraints
+- **Single-Pair Isolation:** This engine is mathematically throttled to run exactly **one pair per runtime instance**. Attempting to feed it multi-asset baskets creates memory cross-contamination and structural incoherence.
+- **Parameter Sensitivity:** The causal window ($\delta$) and horizon variables require intense, manual, asset-specific tuning. If your thresholds are sloppy, the DAG turns into an uncomputable memory bottleneck.
+- **Status:** This is an open-source, executable research thesis written during quiet weekends to solve a hyper-specific order-flow execution problem. It carries an MIT License: take the code, fork it, privatize it, or embed it deep inside your own closed-source trading setup. The ideas belong to the root author; the execution risk belongs 100% to you. 
+
+
 ---
 
 ## Theoretical Foundation
