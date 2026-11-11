@@ -489,6 +489,76 @@ results["equity_curve"].plot()
 | `signals`       | Full signal log (list of dicts) |
 | `equity_curve`  | `pd.Series` of equity           |
 
+## Expected Output
+
+The exact output depends on the input data and the parameter choice. The
+backtest prints four values:
+
+- `n_events` — the number of order book snapshots ingested
+- `n_signals` — the number of signals emitted
+- `total_return` — the change in equity over the run
+- `sharpe` — the Sharpe ratio, annualised by the actual event frequency
+
+**On the synthetic mode**, with the default parameters and seed 42, the
+output is approximately:
+
+- `n_events: 5000`
+- `n_signals: 30 to 60`
+- `total_return: -0.5% to +0.5%` (paper trading without a fill model)
+- `sharpe: 0.0` (see note on Sharpe below)
+
+The `n_signals` value is non-zero only because the fix to Bug 1 in
+`causalitybot.py` allows the attractor to evaluate horizons on events
+that arrive after the horizon. **Before the fix, `n_signals` was always
+zero on every run**, because `CausalAttractor.compute` was called on the
+horizon event itself and found no future events to score.
+
+The `sharpe` value is close to zero because the paper broker does not
+simulate fills; equity is computed from the mid-price at the moment of
+the signal, which includes neither slippage nor any position sizing.
+A production deployment must implement a fill model before the Sharpe
+value is interpretable.
+
+**Historical note.** A previous version of this README claimed the
+synthetic backtest produced `n_signals: 47, total_return: 2.35,
+sharpe: 1.42`. Those numbers could not have been produced by the code at
+that commit, because signal generation was unreachable on every horizon.
+The exact numbers were illustrative and should not be relied on.
+
+## Known Issues
+
+The following issues were present in the pre-fix version of
+`causalitybot.py` and are corrected in the current version. See
+`AUDIT.md` for the full technical report on each one.
+
+1. **Signal generation was silently disabled.** `CausalAttractor.compute`
+   was called on the event that just arrived, so the future-event filter
+   always produced an empty set. Corrected by tracking active horizons
+   and evaluating on subsequent ticks.
+2. **Bottleneck scanning missed genuine vacuums.** The volume profile
+   only iterated over populated price levels, so empty gaps were invisible.
+   Corrected by constructing a contiguous grid from the lowest to the
+   highest populated level.
+3. **The causal poset was near-complete within delta.** The depth-overlap
+   condition triggered on almost every pair because top-of-book depth
+   changes on nearly every tick. Corrected by requiring price overlap AND
+   depth overlap for limit and cancel events.
+4. **The z-score baseline in `HorizonDetector` was autocorrelated.**
+   Consecutive `local_depth` values shared most of their contributing
+   events, inflating the effective variance. Corrected by sampling the
+   history at non-overlapping bucket boundaries.
+5. **`Sharpe` was annualised by 252 rather than by event frequency.**
+   Corrected by annualising against the measured event rate.
+6. **The synthetic backtest used a driftless random walk.** Corrected by
+   using an Ornstein–Uhlenbeck process around a hidden attractor, so the
+   synthetic validation actually exercises the attractor code.
+
+Eleven additional lower-severity items (memory leak under eviction,
+mutable hash on `MarketEvent`, timestamp unit assumption in live mode,
+symmetric windows in the geometry, unused parameters, comment / code
+mismatch, and others) are enumerated in `AUDIT.md` and corrected in the
+current `causalitybot.py`.
+
 ---
 
 ## Live Trading
